@@ -17,6 +17,24 @@ const client = new MongoClient(uri, {
 	serverApi: ServerApiVersion.v1,
 });
 
+// Verify JWT
+const verifyJWT = async (req, res, next) => {
+	const authHeader = req.headers.authorization;
+	if (!authHeader) {
+		return res.status(401).send('Unauthorized Access.');
+	}
+
+	const token = authHeader.split(' ')[1];
+
+	jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+		if (err) {
+			return res.status(403).send('Forbidden Access');
+		}
+		req.decoded = decoded;
+		next();
+	});
+};
+
 const run = async () => {
 	const UsersCollection = client.db('Old-Is-Gold').collection('Users');
 
@@ -59,7 +77,6 @@ const run = async () => {
 	// Post a User
 	app.post('/users', async (req, res) => {
 		const user = req.body;
-		console.log(user);
 		const result = await UsersCollection.insertOne(user);
 		res.send(result);
 	});
