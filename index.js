@@ -64,6 +64,26 @@ const run = async () => {
 	 */
 
 	/**
+	 * Authorization Start
+	 */
+
+	// Verify is the user Admin
+	const verifyAdmin = async (req, res, next) => {
+		const decodedEmail = req.decoded.email;
+
+		const query = { email: decodedEmail };
+		const user = await UsersCollection.findOne(query);
+		if (user.role !== 'admin') {
+			return res.status(403).send({ message: 'Forbidden Access.' });
+		}
+		next();
+	};
+
+	/**
+	 * Authorization End
+	 */
+
+	/**
 	 * Users Operations Start
 	 */
 
