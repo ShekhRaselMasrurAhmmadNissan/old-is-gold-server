@@ -79,6 +79,18 @@ const run = async () => {
 		next();
 	};
 
+	// Verify is the user Seller
+	const verifySeller = async (req, res, next) => {
+		const decodedEmail = req.decoded.email;
+
+		const query = { email: decodedEmail };
+		const user = await UsersCollection.findOne(query);
+		if (user.role !== 'seller') {
+			return res.status(403).send({ message: 'Forbidden Access.' });
+		}
+		next();
+	};
+
 	/**
 	 * Authorization End
 	 */
