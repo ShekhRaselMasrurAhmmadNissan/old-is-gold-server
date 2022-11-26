@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const { MongoClient, ServerApiVersion } = require('mongodb');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
@@ -8,7 +10,6 @@ const port = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cors());
 
-const { MongoClient, ServerApiVersion } = require('mongodb');
 const uri = process.env.URI;
 const client = new MongoClient(uri, {
 	useNewUrlParser: true,
@@ -58,6 +59,7 @@ const run = async () => {
 	// Post a User
 	app.post('/users', async (req, res) => {
 		const user = req.body;
+		console.log(user);
 		const result = await UsersCollection.insertOne(user);
 		res.send(result);
 	});
