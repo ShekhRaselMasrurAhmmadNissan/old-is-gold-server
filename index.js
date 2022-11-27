@@ -120,6 +120,11 @@ const run = async () => {
 	// Post a User
 	app.post('/users', async (req, res) => {
 		const user = req.body;
+		const query = { email: req.body.email };
+		const foundUser = await UsersCollection.findOne(query);
+		if (foundUser) {
+			return res.send({ found: true, email: foundUser.email });
+		}
 		const result = await UsersCollection.insertOne(user);
 		res.send(result);
 	});
