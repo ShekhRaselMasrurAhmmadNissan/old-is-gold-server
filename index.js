@@ -40,6 +40,7 @@ const run = async () => {
 	const CategoriesCollection = client
 		.db('Old-Is-Gold')
 		.collection('Categories');
+	const ProductsCollection = client.db('Old-Is-Gold').collection('Products');
 
 	app.get('/', async (req, res) => {
 		res.send('The Server is running.');
@@ -186,6 +187,21 @@ const run = async () => {
 	});
 	/**
 	 * Categories Operation End
+	 */
+
+	/**
+	 * Products Operation Start
+	 */
+	// Get All data of the user.
+	app.get('/products/:email', async (req, res) => {
+		const query = { sellerEmail: req.params.email };
+		const products = await ProductsCollection.find(query).toArray();
+		res.send(products);
+	});
+
+	//
+	/**
+	 * Products Operation End
 	 */
 };
 run()
