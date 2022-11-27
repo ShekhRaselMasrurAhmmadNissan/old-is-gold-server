@@ -37,6 +37,9 @@ const verifyJWT = async (req, res, next) => {
 
 const run = async () => {
 	const UsersCollection = client.db('Old-Is-Gold').collection('Users');
+	const CategoriesCollection = client
+		.db('Old-Is-Gold')
+		.collection('Categories');
 
 	app.get('/', async (req, res) => {
 		res.send('The Server is running.');
@@ -130,7 +133,21 @@ const run = async () => {
 	});
 
 	/**
-	 * Users Operation Finished
+	 * Users Operation End
+	 */
+
+	/**
+	 * Categories Operation start
+	 */
+
+	// Get All Categories.
+	app.get('/categories', async (req, res) => {
+		const query = {};
+		const categories = await CategoriesCollection.find(query).toArray();
+		res.send(categories);
+	});
+	/**
+	 * Categories Operation End
 	 */
 };
 run()
