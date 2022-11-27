@@ -199,7 +199,13 @@ const run = async () => {
 		res.send(products);
 	});
 
-	//
+	// Post product to the db
+	app.post('/products', async (req, res) => {
+		const product = req.body;
+		const result = await ProductsCollection.insertOne(product);
+		res.send(result);
+	});
+
 	/**
 	 * Products Operation End
 	 */
