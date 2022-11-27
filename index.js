@@ -132,6 +132,14 @@ const run = async () => {
 		res.send(result);
 	});
 
+	// Check Whether a user is Admin or not.
+	app.get('/users/admin/:email', async (req, res) => {
+		const email = req.params.email;
+		const query = { email: email };
+		const user = await UsersCollection.findOne(query);
+		res.send({ isAdmin: user?.role === 'admin' });
+	});
+
 	/**
 	 * Users Operation End
 	 */
