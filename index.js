@@ -140,6 +140,14 @@ const run = async () => {
 		res.send({ isAdmin: user?.role === 'admin' });
 	});
 
+	// Check Whether a user is Seller or not.
+	app.get('/users/seller/:email', async (req, res) => {
+		const email = req.params.email;
+		const query = { email: email };
+		const user = await UsersCollection.findOne(query);
+		res.send({ isSeller: user?.role === 'seller' });
+	});
+
 	/**
 	 * Users Operation End
 	 */
