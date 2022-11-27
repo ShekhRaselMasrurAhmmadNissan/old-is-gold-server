@@ -188,7 +188,7 @@ const run = async () => {
 
 	// Get products of the categories
 	app.get('/categories/:id', async (req, res) => {
-		const query = { categoryId: req.params.id };
+		const query = { categoryId: req.params.id, sold: false };
 		const products = await ProductsCollection.find(query).toArray();
 		res.send(products);
 	});
