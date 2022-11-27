@@ -120,6 +120,13 @@ const run = async () => {
 		res.send(users);
 	});
 
+	// Get All Seller
+	app.get('/users/allSeller', async (req, res) => {
+		const query = { role: 'seller' };
+		const users = await UsersCollection.find(query).toArray();
+		res.send(users);
+	});
+
 	// Post a User
 	app.post('/users', async (req, res) => {
 		const user = req.body;
