@@ -369,7 +369,7 @@ const run = async () => {
 		res.send(order);
 	});
 
-	app.post('/orders', verifyJWT, verifyBuyer, async (req, res) => {
+	app.post('/orders', async (req, res) => {
 		const order = req.body;
 		const query = {
 			productID: order.productID,
