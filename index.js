@@ -233,6 +233,13 @@ const run = async () => {
 		res.send(productUpdate);
 	});
 
+	// Delete Product
+	app.delete('/products/:id', async (req, res) => {
+		const query = { _id: ObjectId(req.params.id) };
+		const result = await ProductsCollection.deleteOne(query);
+		res.send(result);
+	});
+
 	/**
 	 * Products Operation End
 	 */
