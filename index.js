@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
+const { query } = require('express');
 require('dotenv').config();
 
 const app = express();
@@ -123,14 +124,14 @@ const run = async () => {
 	});
 
 	// Get All Seller
-	app.get('/users/allSeller', async (req, res) => {
+	app.get('/users/allSeller', verifyJWT, verifyAdmin, async (req, res) => {
 		const query = { role: 'seller' };
 		const users = await UsersCollection.find(query).toArray();
 		res.send(users);
 	});
 
 	// Get All Buyer
-	app.get('/users/allBuyer', async (req, res) => {
+	app.get('/users/allBuyer', verifyJWT, verifyAdmin, async (req, res) => {
 		const query = { role: 'buyer' };
 		const users = await UsersCollection.find(query).toArray();
 		res.send(users);
@@ -201,15 +202,15 @@ const run = async () => {
 	/**
 	 * Products Operation Start
 	 */
-	// Get All data of the user.
-	app.get('/products/:email', async (req, res) => {
+	// Get All products of the user.
+	app.get('/products/:email', verifyJWT, verifySeller, async (req, res) => {
 		const query = { sellerEmail: req.params.email };
 		const products = await ProductsCollection.find(query).toArray();
 		res.send(products);
 	});
 
 	// Post product to the db
-	app.post('/products', async (req, res) => {
+	app.post('/products', verifyJWT, verifySeller, async (req, res) => {
 		const product = req.body;
 		const result = await ProductsCollection.insertOne(product);
 		res.send(result);
@@ -223,19 +224,24 @@ const run = async () => {
 	});
 
 	// Advertise a product.
-	app.patch('/products/advertised/:id', async (req, res) => {
-		const query = { _id: ObjectId(req.params.id) };
-		const updatedDoc = { $set: { advertised: true } };
-		const productUpdate = await ProductsCollection.updateOne(
-			query,
-			updatedDoc
-		);
-		// const productUpdate = await ProductsCollection.updateOne(query, updatedDoc,option)
-		res.send(productUpdate);
-	});
+	app.patch(
+		'/products/advertised/:id',
+		verifyJWT,
+		verifySeller,
+		async (req, res) => {
+			const query = { _id: ObjectId(req.params.id) };
+			const updatedDoc = { $set: { advertised: true } };
+			const productUpdate = await ProductsCollection.updateOne(
+				query,
+				updatedDoc
+			);
+			// const productUpdate = await ProductsCollection.updateOne(query, updatedDoc,option)
+			res.send(productUpdate);
+		}
+	);
 
 	// Delete Product
-	app.delete('/products/:id', async (req, res) => {
+	app.delete('/products/:id', verifyJWT, verifySeller, async (req, res) => {
 		const query = { _id: ObjectId(req.params.id) };
 		const result = await ProductsCollection.deleteOne(query);
 		res.send(result);
@@ -249,7 +255,15 @@ const run = async () => {
 	 * Order Start
 	 */
 
-	app.post('/orders', async (req, res) => {
+	// Get all orders
+	app.get('/orders', verifyJWT, verifyBuyer, async (req, res) => {
+		const buyerEmail = req.query.email;
+		const query = { buyerEmail: buyerEmail };
+		const orders = await OrdersCollection.find(query).toArray();
+		res.send(orders);
+	});
+
+	app.post('/orders', verifyJWT, verifyBuyer, async (req, res) => {
 		const order = req.body;
 		const query = {
 			productID: order.productID,
