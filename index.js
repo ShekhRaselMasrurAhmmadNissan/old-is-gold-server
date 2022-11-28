@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
@@ -212,6 +212,18 @@ const run = async () => {
 		const product = req.body;
 		const result = await ProductsCollection.insertOne(product);
 		res.send(result);
+	});
+
+	// Advertise a product.
+	app.patch('/products/advertised/:id', async (req, res) => {
+		const query = { _id: ObjectId(req.params.id) };
+		const updatedDoc = { $set: { advertised: true } };
+		const productUpdate = await ProductsCollection.updateOne(
+			query,
+			updatedDoc
+		);
+		// const productUpdate = await ProductsCollection.updateOne(query, updatedDoc,option)
+		res.send(productUpdate);
 	});
 
 	/**
