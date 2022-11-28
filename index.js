@@ -41,6 +41,7 @@ const run = async () => {
 		.db('Old-Is-Gold')
 		.collection('Categories');
 	const ProductsCollection = client.db('Old-Is-Gold').collection('Products');
+	const OrdersCollection = client.db('Old-Is-Gold').collection('Orders');
 
 	app.get('/', async (req, res) => {
 		res.send('The Server is running.');
@@ -242,6 +243,28 @@ const run = async () => {
 
 	/**
 	 * Products Operation End
+	 */
+
+	/**
+	 * Order Start
+	 */
+
+	app.post('/orders', async (req, res) => {
+		const order = req.body;
+		const query = {
+			productID: order.productID,
+			buyerEmail: order.buyerEmail,
+		};
+		const findResult = await OrdersCollection.findOne(query);
+		if (findResult) {
+			return res.send({ found: true });
+		}
+		const result = await OrdersCollection.insertOne(order);
+		res.send(result);
+	});
+
+	/**
+	 * Order End
 	 */
 };
 run()
