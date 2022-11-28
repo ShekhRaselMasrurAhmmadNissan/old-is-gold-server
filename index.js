@@ -214,6 +214,13 @@ const run = async () => {
 		res.send(result);
 	});
 
+	// Get all Advertised Products
+	app.get('/advertised', async (req, res) => {
+		const query = { advertised: true, sold: false };
+		const products = await ProductsCollection.find(query).toArray();
+		res.send(products);
+	});
+
 	// Advertise a product.
 	app.patch('/products/advertised/:id', async (req, res) => {
 		const query = { _id: ObjectId(req.params.id) };
