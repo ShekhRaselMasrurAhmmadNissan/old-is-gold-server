@@ -196,6 +196,34 @@ const run = async () => {
 		res.send(result);
 	});
 
+	// Delete a user
+	app.delete('/users/:id', verifyJWT, verifyAdmin, async (req, res) => {
+		const id = req.params.id;
+		const query = { _id: ObjectId(id) };
+		const result = await UsersCollection.deleteOne(query);
+		res.send(result);
+	});
+	// Delete a user
+	app.patch('/users/verify/:id', verifyJWT, verifyAdmin, async (req, res) => {
+		const id = req.params.id;
+		const query = { _id: ObjectId(id) };
+		const options = { upsert: true };
+		const updatedDoc = { $set: { verified: true } };
+		const result = await UsersCollection.updateOne(
+			query,
+			updatedDoc,
+			options
+		);
+
+		const sellerQuery = { sellerEmail: req.body.sellerEmail };
+		const updateProducts = await ProductsCollection.updateMany(
+			sellerQuery,
+			updatedDoc,
+			options
+		);
+		res.send(result);
+	});
+
 	// Check Whether a user is Admin or not.
 	app.get('/users/admin/:email', async (req, res) => {
 		const email = req.params.email;
@@ -258,7 +286,13 @@ const run = async () => {
 
 	// Post product to the db
 	app.post('/products', verifyJWT, verifySeller, async (req, res) => {
-		const product = req.body;
+		let product = req.body;
+		const seller = await UsersCollection.findOne({
+			email: product.sellerEmail,
+		});
+		if (seller?.verified) {
+			product = { ...product, verified: true };
+		}
 		const result = await ProductsCollection.insertOne(product);
 		res.send(result);
 	});
@@ -287,8 +321,27 @@ const run = async () => {
 		}
 	);
 
+	// Report a product
+	app.patch('/products/report/:id', verifyJWT, async (req, res) => {
+		const query = { _id: ObjectId(req.params.id) };
+		const updatedDoc = { $set: { reported: true } };
+		const productUpdate = await ProductsCollection.updateOne(
+			query,
+			updatedDoc
+		);
+		// const productUpdate = await ProductsCollection.updateOne(query, updatedDoc,option)
+		res.send(productUpdate);
+	});
+
+	// Get all Reported products
+	app.get('/products/reported', verifyJWT, async (req, res) => {
+		const query = { reported: true };
+		const products = await ProductsCollection.find(query).toArray();
+		res.send(products);
+	});
+
 	// Delete Product
-	app.delete('/products/:id', verifyJWT, verifySeller, async (req, res) => {
+	app.delete('/products/:id', verifyJWT, async (req, res) => {
 		const query = { _id: ObjectId(req.params.id) };
 		const result = await ProductsCollection.deleteOne(query);
 		res.send(result);
