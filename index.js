@@ -4,6 +4,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const jwt = require('jsonwebtoken');
 const { query } = require('express');
 require('dotenv').config();
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -43,6 +44,7 @@ const run = async () => {
 		.collection('Categories');
 	const ProductsCollection = client.db('Old-Is-Gold').collection('Products');
 	const OrdersCollection = client.db('Old-Is-Gold').collection('Orders');
+	const PaymentsCollection = client.db('Old-Is-Gold').collection('Payments');
 
 	app.get('/', async (req, res) => {
 		res.send('The Server is running.');
@@ -110,6 +112,51 @@ const run = async () => {
 
 	/**
 	 * Authorization End
+	 */
+
+	/**
+	 * Payments Start
+	 */
+	// Payment Intents
+	app.post('/create-payment-intent', async (req, res) => {
+		const order = req.body;
+		const price = parseFloat(order.resalePrice);
+		const amount = price * 100;
+
+		const paymentIntent = await stripe.paymentIntents.create({
+			amount: amount,
+			currency: 'usd',
+			payment_method_types: ['card'],
+		});
+
+		res.send({
+			clientSecret: paymentIntent.client_secret,
+		});
+	});
+
+	app.post('/payments', async (req, res) => {
+		const payment = req.body;
+		const result = await PaymentsCollection.insertOne(payment);
+		const id = payment.productID;
+		const filter = { _id: ObjectId(id) };
+		const updatedDoc = {
+			$set: { sold: true, transactionID: payment.transactionID },
+		};
+
+		const updateResult = await ProductsCollection.updateOne(
+			filter,
+			updatedDoc
+		);
+
+		const query = { productID: payment.productID };
+		const updateOrdersInfo = await OrdersCollection.updateMany(query, {
+			$set: { sold: true },
+		});
+
+		res.send({ result, updateResult, updateOrdersInfo });
+	});
+	/**
+	 * Payments End
 	 */
 
 	/**
@@ -261,6 +308,12 @@ const run = async () => {
 		const query = { buyerEmail: buyerEmail };
 		const orders = await OrdersCollection.find(query).toArray();
 		res.send(orders);
+	});
+
+	app.get('/orders/:id', async (req, res) => {
+		const query = { _id: ObjectId(req.params.id) };
+		const order = await OrdersCollection.findOne(query);
+		res.send(order);
 	});
 
 	app.post('/orders', verifyJWT, verifyBuyer, async (req, res) => {
