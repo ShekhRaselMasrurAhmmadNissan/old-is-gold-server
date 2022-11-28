@@ -334,7 +334,7 @@ const run = async () => {
 	});
 
 	// Get all Reported products
-	app.get('/products/reported', verifyJWT, async (req, res) => {
+	app.get('/reported', async (req, res) => {
 		const query = { reported: true };
 		const products = await ProductsCollection.find(query).toArray();
 		res.send(products);
